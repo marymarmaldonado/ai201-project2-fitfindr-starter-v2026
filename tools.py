@@ -233,5 +233,22 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+
+    if not outfit or not outfit.strip():
+        return "I couldn't create a fit card because there was no outfit suggestion."
+
+    prompt = f"""
+    Write a short social media-style caption for this thrifted find.
+
+    Item: {new_item.get("title")}
+    Price: ${new_item.get("price")}
+    Platform: {new_item.get("platform")}
+    Outfit: {outfit}
+
+    Write 2 to 4 sentences.
+    Mention the item, its price, and the platform once each.
+    Make it sound like a real post, not a product description.
+    Be specific about the overall vibe.
+    """
+
+    return generate(prompt)
