@@ -102,10 +102,9 @@
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** The query is parsed using regular expressions to extract the size and maximum price. The remaining text is used as the description.
 
-**What moves through the session:** <!-- which fields, in what order -->
-
+**What moves through the session:** The parsed query is stored first, followed by the search results, selected item, outfit suggestion, and finally the fit card. Each tool reads the value it needs back from the session.
 ---
 
 ## Sample Run
