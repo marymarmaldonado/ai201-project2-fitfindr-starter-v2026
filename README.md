@@ -41,8 +41,6 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
-
-
 ---
 
 ## Tool Inventory
@@ -59,24 +57,31 @@
 
 ### `search_listings`
 
-- **What it does:**
+- **What it does:** Searches the data for items that match the user's description, optional size, and optional maximum price.
 - **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+  - `description` (str): Keywords describing what the user wants
+  - `size` (str | None): Optional size filter
+  - `max_price` (float | None): Optional maximum price, inclusive.
+- **Returns:** A list of matching listing dictionaries, best match first. Each dictionary contains listing information such as `title`, `price`, `size`, `platform`, and the other listing fields.
+- **When it has nothing:** Returns an empty list `[]` when no listings match.
 
 ### `suggest_outfit`
 
-- **What it does:**
+- **What it does:** Suggests one or two outfits using the new thrifted item and the user's wardrobe.
 - **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+  - `new_item` (dict): A listing dictionary for the item being considered.
+  - `wardrobe` (dict): A wardrobe dictionary with an `items` list.
+- **Returns:** A non-empty string containing outfit suggestions.
+- **When it has nothing:** If the wardrobe has no items, returns general styling advice for the new item instead of failing.
 
 ### `create_fit_card`
 
-- **What it does:**
+- **What it does:** Creates a short caption for the thrifted item and suggested outfit.
 - **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+  - `outfit` (str): The outfit suggestion returned by `suggest_outfit`.
+  - `new_item` (dict): The selected listing dictionary.
+- **Returns:** A 2-4 sentence caption that mentions the item, its price, its platform, and the overall vibe.
+- **When it has nothing:** If `outfit` is empty or only whitespace, returns a descriptive message instead of raising an error.
 
 ---
 
@@ -93,7 +98,7 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:**
+**Branch rule:** If `search_listings` returns an empty list, the agent stores a helpful message in the session and stops before calling `suggest_outfit`. Otherwise, the agent selects the first result and continues to `suggest_outfit`.
 
 **Where it lives:** `agent.py::run_agent`
 
