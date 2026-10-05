@@ -40,6 +40,7 @@
 ## What This Does
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
+FitFindr helps a user search for thrifted clothing based on what they are looking for, including an optional size and maximum price. After finding a matching item, it uses the user's wardrobe to suggest one or two outfits that include that item. It then creates a short fit-card caption that includes the selected item, its price, its platform, and the overall outfit vibe.
 
 ---
 
@@ -116,10 +117,32 @@
 
 **One full query**
 
-```
-$ python app.py ask '...'
+```text
+$ python app.py ask "vintage graphic tee under $30"
 
-```
+Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+Outfit:   Here are two outfit suggestions using the Y2K Butterfly Baby Tee (`lst_002`) and pieces from your wardrobe:
+
+### Outfit 1: Classic Y2K Streetwear
+This look leans into the vintage Y2K aesthetic of the baby tee by pairing the fitted, cropped top with high-waisted baggy denim for a balanced silhouette.
+
+* **Top:** Y2K Baby Tee — Butterfly Print (`lst_002`)
+* **Bottoms:** Baggy straight-leg jeans, dark wash (`w_001`)
+* **Shoes:** Chunky white sneakers (`w_007`)
+* **Accessories:** Black crossbody bag (`w_010`)
+
+### Outfit 2: Casual Edge
+For a slightly more grounded everyday look, layer the vintage denim jacket over the baby tee to complement the butterfly graphic, paired with comfortable streetwear staples.
+
+* **Top:** Y2K Baby Tee — Butterfly Print (`lst_002`)
+* **Outerwear:** Vintage black denim jacket (`w_006`)
+* **Bottoms:** Wide-leg khaki trousers (`w_002`)
+* **Shoes:** Chunky white sneakers (`w_007`)
+
+Fit card: Channeling major early 2000s pop star energy in this adorable Y2K Butterfly Baby Tee! I just listed this nostalgic gem on Depop for $18, and it's giving the ultimate retro streetwear vibe when paired with low-rise denim and chunky kicks. Run, don't walk, to grab this before it's gone! 🦋✨
+
+0 model calls this session, 2 served from cache
 
 **The three tools, tested one at a time**
 
@@ -184,15 +207,15 @@ $ python -c "from tools import search_listings; print(search_listings('designer 
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I used AI to check whether my `search_listings` implementation matched the project requirements and handled the expected filters and empty-result case correctly.
+- *What came back:* It confirmed that the function should filter by description, size, and maximum price, return the best matches first, and return an empty list `[]` when nothing matched.
+- *What I changed:* I reviewed my implementation against that feedback, corrected the `.upper()` call in `_size_tokens`, and tested both a matching query and a query that returned no results.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I used AI to check whether my `agent.py` planning loop followed the required branch and session-state behavior.
+- *What came back:* It pointed out that every tool result should be stored in the session and that the loop should stop immediately when `search_listings` returned no results instead of continuing to `suggest_outfit`.
+- *What I changed:* I verified that my loop stored the parsed query, search results, selected item, outfit suggestion, and fit card in the session. I also ran both the successful and no-results paths to confirm that the no-results path stopped early and left `fit_card` as `None`.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
