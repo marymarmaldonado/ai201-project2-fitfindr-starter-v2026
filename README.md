@@ -300,11 +300,34 @@ that produced it:
 
 ```
 
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+
+[2] suggest_outfit
+      in:  dict with keys: new_item, wardrobe
+      out: Here are two outfit suggestions using the Y2K Butterfly Baby Tee (`lst_002`) and pieces from your wardrobe:  #…
+
+[3] create_fit_card
+      in:  dict with keys: outfit, new_item
+      out: Channeling major early 2000s pop star energy in this adorable Y2K Butterfly Baby Tee! I just listed this nosta…
+
+
 ```
 
 **Empty search**
 
 ```
+
+$ python app.py ask 'designer ballgown size XXS under $5' --trace
+
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: [] (empty)
+
+I couldn't find any matching listings. Try changing the description, size, or maximum price.
+
+0 model calls this session
 
 ```
 
@@ -313,9 +336,44 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
+I moved `search_listings` to MCP by registering it in `mcp_server.py` using `@mcp.tool()`. The registered tool accepts `description` (str), `size` (str | None), and `max_price` (float | None). Its description explains that it searches secondhand clothing listings and returns an empty list when no items match.
 
+I verified the registration by running `python mcp_client.py`, which successfully displayed `search_listings` with its description and input schema.
+
+I then updated `agent.py::run_agent` to call `search_listings` through `mcp_client.call_tool()` instead of calling it directly from `tools.py`. The other two tools remained unchanged.
+
+After the integration, I tested both successful and unsuccessful searches using `python agent.py` and `python app.py ask 'vintage graphic tee under $30'`. The agent continued finding matching listings, generating outfits, and creating fit cards. The empty-search branch also continued stopping correctly. No unexpected behavioral differences were observed.
 
 ---
+
+### Failure Mode Testing
+
+**1. Empty Search — PASS**
+
+Command: `python app.py ask 'designer ballgown size XXS under $5'`
+
+Result: The agent returned an actionable message suggesting changes to the description, size, or maximum price. It stopped without calling `suggest_outfit` or `create_fit_card`.
+
+**2. Empty Wardrobe — PASS**
+
+Command: `python app.py ask 'vintage graphic tee under $30' --empty-wardrobe`
+
+Result: The agent found the Y2K Baby Tee for $18 and generated two general styling suggestions and a fit card, even without existing wardrobe items. The program completed successfully.
+
+**3. Model Unavailable — PASS**
+
+Command: `python app.py ask 'vintage graphic hoodie size L under $27'`
+
+I temporarily changed one character of my Gemini API key in `.env` to simulate an authentication failure.
+
+Output:
+
+    1 model calls this session
+
+    ModelUnavailable: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.
+
+Result: The application displayed an actionable error message instead of an unhandled traceback. I restored the original API key after testing.
+
 
 ## The Improvement
 

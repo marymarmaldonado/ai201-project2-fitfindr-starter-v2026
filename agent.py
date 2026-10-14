@@ -107,6 +107,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
       • A handler for ModelUnavailable, so a bad key produces a message rather
         than a stack trace. The import is already at the top of this file.
     """
+    trace.start_trace()
+    session = new_session(query, wardrobe)
     session = new_session(query, wardrobe)
 
     price_match = re.search(r"under\s*\$?(\d+(?:\.\d+)?)", query, re.IGNORECASE)
@@ -150,15 +152,25 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
         
         
+        
         if step == "search":
+            search_inputs = {
+                "description": session["parsed"]["description"],
+                "size": session["parsed"]["size"],
+                "max_price": session["parsed"]["max_price"],
+            }
+
             session["search_results"] = call_tool(
                 "search_listings",
-                {
-                    "description": session["parsed"]["description"],
-                    "size": session["parsed"]["size"],
-                    "max_price": session["parsed"]["max_price"],
-                },
+                search_inputs,
             )
+
+            trace.step(
+                "search_listings (via MCP)",
+                inputs=search_inputs,
+                returned=session["search_results"],
+            )
+
 
             if not session["search_results"]:
                 session["error"] = (
@@ -169,19 +181,40 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
             session["selected_item"] = session["search_results"][0]
             step = "outfit"
-
+   
         elif step == "outfit":
             session["outfit_suggestion"] = suggest_outfit(
                 session["selected_item"],
                 session["wardrobe"],
             )
+
+            trace.step(
+                "suggest_outfit",
+                inputs={
+                    "new_item": session["selected_item"],
+                    "wardrobe": session["wardrobe"],
+                },
+                returned=session["outfit_suggestion"],
+            )
+
             step = "fit_card"
 
+        
         elif step == "fit_card":
             session["fit_card"] = create_fit_card(
                 session["outfit_suggestion"],
                 session["selected_item"],
             )
+
+            trace.step(
+                "create_fit_card",
+                inputs={
+                    "outfit": session["outfit_suggestion"],
+                    "new_item": session["selected_item"],
+                },
+                returned=session["fit_card"],
+            )
+
             step = "done"
 
     return session
