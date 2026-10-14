@@ -303,15 +303,42 @@ All within budget: True
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
+
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Complete all three tools | 4/5 | MISSED (1/5) | Only Try 1 completed successfully. Tries 2–5 encountered Gemini 503 errors before generating a fit card. |
+| 2 | Empty search stops early | 5/5 | MET (5/5) | All five trials returned an empty search result and stopped before calling suggest_outfit. |
+| 3 | Selected item consistency | 5/5 | MISSED (0/5)* | All five original trials ended with Gemini 503 errors. A separate mocked test confirmed the correct item was passed in 5/5 checks, so no state mismatch was observed. |
+| 4 | Fit card includes required details | 4/5 | MISSED (1/5) | Try 1 included the item, price, platform, and styling vibe. Tries 2–5 failed due to Gemini 503 errors. |
+| 5 | Maximum price respected | 5/5 | MET (5/5) | All five searches returned the same three listings, priced $18, $15, and $19, within the $20 limit. |
+
 
 **Diagnoses**
+
+**Criterion 1 — Full three-tool execution**
+
+MISSED (1/5). Four trials failed because Gemini returned `503 UNAVAILABLE`. The MCP search completed successfully in every attempt, but the model-dependent tools could not consistently finish. In Try 2, Try 4, and Try 5, `suggest_outfit` completed before `create_fit_card` failed. In Try 3, the failure occurred during `suggest_outfit`. The issue was model-service availability, not the search logic.
+
+**Criterion 2 — Empty search handling**
+
+MET (5/5). Every impossible query returned an empty list from `search_listings`. The branch in `agent.py::run_agent` correctly stored an actionable error message and returned before calling `suggest_outfit`.
+
+**Criterion 3 — Selected item consistency**
+
+MISSED (0/5 completed baseline trials). Every original trial encountered a Gemini 503 error. However, the failure was not caused by an incorrect session value. A separate five-run test using mocked model functions confirmed that the selected item (`lst_002`) matched the item passed into `suggest_outfit` in all five checks. The original evaluation could not independently establish a completed end-to-end result.
+
+**Criterion 4 — Fit card content**
+
+MISSED (1/5). The successful fit card mentioned the Y2K butterfly baby tee, its $18 price, Depop, and its streetwear styling vibe. Four additional trials failed before producing a fit card because Gemini returned `503 UNAVAILABLE`. No missing required information was observed in the successfully generated card.
+
+**Criterion 5 — Maximum price filtering**
+
+MET (5/5). Every search returned the same three listings. Their verified prices were $18, $15, and $19, all within the requested $20 maximum. Later model failures did not affect the already completed search results.
+
+**Overall pattern**
+
+The main source of failure was Gemini's temporary unavailability. MCP search and deterministic filtering continued working, while model-dependent outfit generation and fit-card creation were unreliable during the baseline evaluation.
+
 
 
 
