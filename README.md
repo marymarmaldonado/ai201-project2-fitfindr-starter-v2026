@@ -443,23 +443,63 @@ Result: The application displayed an actionable error message instead of an unha
      `python run_eval.py --label after` -->
 
 **What I changed:**
+I updated `generate.py` to retry temporary Gemini `503 UNAVAILABLE` errors using the existing retry and backoff mechanism. Previously, only rate-limit errors were retried, while 503 errors immediately raised `ModelUnavailable`.
+
+I also updated the retry messages and final error handling so users receive a helpful message if the model remains unavailable after all attempts.
 
 **Which failure it was meant to fix:**
+The baseline evaluation showed that Gemini service unavailability prevented the agent from consistently completing `suggest_outfit` and `create_fit_card`. This improvement was intended to reduce failures caused by temporary 503 errors without changing the agent's search logic, prompts, or acceptance criteria.
 
 ### Run Log — After
 
+
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Matching query completes all three tools | 4/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. Impossible query stops before second tool | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Selected item consistency | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5)* |
+| 4. Fit card includes required details | 4/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5)** |
+| 5. Search respects maximum price | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+
 
 **Did it help, and how do I know:**
+The after-evaluation completed all 30 runs without crashing, compared with repeated Gemini 503 errors during the baseline. Full agent completion improved from 1/5 to 5/5, and successful fit-card generation also improved from 1/5 to 5/5.
+
+However, no 503 errors appeared during the after-evaluation, so the results do not prove that retrying caused the improvement. Gemini may also have recovered between evaluations. The retry mechanism addresses an identified failure path, but its effectiveness under repeated 503 errors has not yet been directly measured.
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
+
+**Real output from the after-evaluation**
+
+Source: `results/run_2026-10-13_2245_after.md`
+Functions: `run_eval.py::main`, `agent.py::run_agent`
+
+Criterion 1 — Try 1:
+- selected_item: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+- search_results: 10
+- All three tools completed successfully.
+
+Criterion 2 — Try 1:
+- stopped early: yes
+- selected_item: (none)
+- search_results: 0
+- The agent stopped after search_listings returned an empty list.
+
+Criterion 3 — Try 1:
+- selected_item: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+- suggest_outfit generated recommendations for the same selected item.
+- Earlier mocked testing directly confirmed the session-to-tool item handoff in 5/5 checks.
+
+Criterion 4 — Try 1:
+Fit card:
+Channeling peak early-2000s pop star energy with this Y2K butterfly baby tee! Grab it on Depop for just $18 to instantly elevate your wardrobe, whether you're styling it with baggy denim for classic streetwear or toughening it up with combat boots for that edgy contrast vibe. 🦋✨
+
+Criterion 5 — Try 1:
+- search_results: 3
+- Returned items: Y2K Baby Tee — Butterfly Print, Mesh Long-Sleeve Top — Black, Vintage Band Tee — Faded Grey
+- Verified prices: $18, $15, $19
+- All prices are within the $20 maximum.
 
 
 
@@ -470,6 +510,13 @@ Result: The application displayed an actionable error message instead of an unha
 <!-- For each criterion still missed: what you'd do, and why you stopped where
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
+
+
+All five criteria met their targets in the after-evaluation, so no acceptance criteria remain missed.
+
+However, the new retry mechanism has not been directly tested against repeated Gemini 503 errors. Although the after-evaluation completed successfully, Gemini did not return any 503 errors during that run. To verify the improvement more thoroughly, I would simulate temporary service failures and confirm that the agent retries and recovers as expected.
+
+I stopped after the required before-and-after evaluation because the acceptance criteria were met, and I wanted to keep the improvement focused on one change.
 
 
 
