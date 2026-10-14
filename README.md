@@ -237,16 +237,49 @@ $ python -c "from tools import search_listings; print(search_listings('designer 
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Matching query completes all three tools | 4/5 | PASS | FAIL | FAIL | FAIL | FAIL | MISSED (1/5) |
+| 2. Impossible query stops before second tool | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Selected item consistency | 5/5 | FAIL | FAIL | FAIL | FAIL | FAIL | MISSED (0/5)* |
+| 4. Fit card includes required details | 4/5 | PASS | FAIL | FAIL | FAIL | FAIL | MISSED (1/5) |
+| 5. Search respects maximum price | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
 ```
+
+Source: results/run_2026-10-13_2158_before.md
+Evaluation: run_eval.py::main
+Agent: agent.py::run_agent
+
+Criterion 1 — Try 1:
+selected_item: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+search_results: 10
+Fit card:
+Channeling major 2000s pop-star energy with this butterfly print Y2K baby tee! Grab it on Depop for just $18 and pair it with baggy denim and chunky sneakers for the ultimate nostalgic streetwear fit. Throw on a black crossbody and you're ready to take on the day looking effortlessly cool. ✨🦋
+
+Criterion 2 — Try 1:
+stopped early: yes — I couldn't find any matching listings. Try changing the description, size, or maximum price.
+selected_item: (none)
+search_results: 0
+
+Criterion 3 — Original Try 1:
+ModelUnavailable: Couldn't reach the model: 503 UNAVAILABLE.
+Supplementary mocked verification (5 runs):
+Selected IDs: ['lst_002', 'lst_002', 'lst_002', 'lst_002', 'lst_002']
+Passed IDs: ['lst_002', 'lst_002', 'lst_002', 'lst_002', 'lst_002']
+Matching: [True, True, True, True, True]
+
+Criterion 4 — Try 1:
+Fit card:
+Obsessed with this Y2K butterfly baby tee, yours on Depop for just $18! It’s giving peak early-2000s energy—style it with baggy denim and chunky sneakers for classic streetwear, or contrast the sweet graphic with khaki trousers and combat boots. Grab it before I keep it for myself! 🦋✨
+
+Criterion 5 — Search results verified:
+Y2K Baby Tee — Butterfly Print: $18.0
+Mesh Long-Sleeve Top — Black: $15.0
+Vintage Band Tee — Faded Grey: $19.0
+All within budget: True
 
 ```
 
